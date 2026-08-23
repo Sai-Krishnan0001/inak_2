@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Claude Certified Associate — CCAO-F Practice Deck</title>
+<style>/*__DESIGN_SYSTEM__*/</style>
+<style>/*__APP_CSS__*/</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <button class="brand" id="brand" title="Home">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-text">Claude Certified <em>· Associate</em></span>
+  </button>
+  <div class="topnav">
+    <button class="navlink" data-go="home">Home</button>
+    <button class="navlink" data-go="bank">The Bank</button>
+    <button class="navlink" data-go="blueprint">Blueprint</button>
+  </div>
+</nav>
+
+<main id="app">
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<section class="screen" id="s-home">
+  <header class="hero">
+    <p class="eyebrow">Claude Certified Associate — Foundations</p>
+    <h1 class="aurora-text">CCAO-F</h1>
+    <p class="hero-sub spotlight-words">One thousand medium-hard practice questions, weighted to the real blueprint, for the exam that tests judgement rather than code.</p>
+  </header>
+
+  <section class="glass pad summary">
+    <h2 class="sec-h">What this is</h2>
+    <p class="lede">A practice bank for the <strong>Claude Certified Associate – Foundations</strong> exam.
+      Every question is a workplace situation with four plausible answers — the kind of applied judgement
+      the real exam tests. Nothing here needs an API, a line of code, or a developer background.</p>
+
+    <div class="statrow">
+      <div class="stat"><span class="k">Questions</span><b class="v" id="statTotal">1000</b></div>
+      <div class="stat"><span class="k">Domains</span><b class="v">7</b></div>
+      <div class="stat"><span class="k">Real exam</span><b class="v">60<small>q</small></b></div>
+      <div class="stat"><span class="k">Time limit</span><b class="v">120<small>min</small></b></div>
+      <div class="stat"><span class="k">Pass mark</span><b class="v">720</b><small>/1000</small></div>
+    </div>
+
+    <div class="howrow">
+      <div class="how how-mint"><h4>Two ways to run it</h4><p>Practice marks each answer the moment you commit to it. Exam holds everything back until you submit, then scores you the way Pearson VUE does.</p></div>
+      <div class="how how-cyan"><h4>Weighted to the blueprint</h4><p>Every session is drawn to the real domain weights, so a 60-question run has the same shape as the exam itself.</p></div>
+      <div class="how how-peri"><h4>Every answer explained</h4><p>Each question tells you why the right answer wins <em>and</em> what made each wrong one tempting — the trap is usually the lesson.</p></div>
+      <div class="how how-violet"><h4>Non-guessable by design</h4><p>The answer key is evenly balanced across A–D, and option length was gated so that guessing by shape cannot beat chance.</p></div>
+    </div>
+  </section>
+
+  <section class="glass pad">
+    <h2 class="sec-h">The seven domains</h2>
+    <p class="sec-note">Percentages are the published exam weighting. A session is drawn to those weights across whichever domains you pick.</p>
+    <div class="domgrid" id="domGrid"></div>
+  </section>
+
+  <section class="glass pad" id="progressPanel" hidden>
+    <h2 class="sec-h">Where you are</h2>
+    <div class="statrow">
+      <div class="stat"><span class="k">Answered</span><b class="v" id="pgSeen">0</b></div>
+      <div class="stat"><span class="k">Accuracy</span><b class="v" id="pgAcc">—</b></div>
+      <div class="stat"><span class="k">Flagged</span><b class="v" id="pgDoubt">0</b></div>
+      <div class="stat"><span class="k">Bank left</span><b class="v" id="pgLeft">1000</b></div>
+    </div>
+    <div class="weakwrap" id="weakWrap" hidden>
+      <p class="sec-note">Topics you are currently below 70% on. Up to 40% of each session is steered here automatically.</p>
+      <div class="chips" id="weakChips"></div>
+    </div>
+    <button class="btn ghost small" id="resetBtn">Reset my progress</button>
+  </section>
+
+  <!-- session builder -->
+  <section class="glass pad builder">
+    <h2 class="sec-h">Build your session</h2>
+
+    <p class="ctrl-label">How should it mark you?</p>
+    <div class="chips modechips" id="modeChips"></div>
+    <p class="mode-note" id="modeNote"></p>
+
+    <p class="ctrl-label">How many questions?</p>
+    <div class="chips" id="lenChips"></div>
+
+    <p class="ctrl-label">Which domains?</p>
+    <div class="chips" id="domChips"></div>
+    <button class="btn ghost small" id="allDoms">Select all seven</button>
+
+    <div class="splitbox">
+      <p class="ctrl-label">Your session will be</p>
+      <div class="split" id="splitOut"></div>
+    </div>
+
+    <div class="startrow">
+      <button class="btn primary ripple" id="startBtn">Start the session</button>
+      <button class="btn ghost ripple" data-go="bank">Browse the bank instead</button>
+    </div>
+  </section>
+</section>
+
+<!-- ═══════════════ QUIZ ═══════════════ -->
+<section class="screen" id="s-quiz" hidden>
+  <div class="quizhead">
+    <div class="rail" id="rail"></div>
+    <div class="quizmeta">
+      <span id="qCount" class="qcount">1 / 20</span>
+      <span class="dot">·</span>
+      <span id="qDomain" class="pill"></span>
+      <span id="qConcept" class="pill"></span>
+      <span id="qTimer" class="pill timer" hidden></span>
+      <button class="btn ghost small" id="quitBtn">End session</button>
+    </div>
+  </div>
+
+  <article class="glass pad qcard" id="qCard">
+    <p class="stem" id="stem"></p>
+    <div class="options" id="options"></div>
+
+    <div class="qactions">
+      <button class="btn primary ripple" id="checkBtn" disabled>Check my answer</button>
+      <button class="btn ghost ripple" id="doubtBtn" title="Flag this to review later">Flag for review</button>
+      <button class="btn ghost ripple" id="prevBtn" hidden>Previous</button>
+      <button class="btn primary ripple" id="advBtn" hidden>Next</button>
+    </div>
+
+    <div class="feedback" id="feedback" hidden>
+      <div class="verdict" id="verdict"></div>
+      <div class="expl expl-mint"><h4 id="exWhyH">Why that answer is right</h4><p id="exWhy"></p></div>
+      <div class="expl expl-indigo"><h4>What the other options were doing</h4><p id="exTraps"></p></div>
+      <button class="btn primary ripple" id="nextBtn">Next question</button>
+    </div>
+  </article>
+</section>
+
+<!-- ═══════════════ RESULTS ═══════════════ -->
+<section class="screen" id="s-results" hidden>
+  <header class="hero">
+    <p class="eyebrow">Session complete</p>
+    <h1 class="aurora-text" id="scorePct">0%</h1>
+    <p class="hero-sub" id="scoreLine"></p>
+  </header>
+
+  <section class="glass pad">
+    <h2 class="sec-h">Scaled score</h2>
+    <p class="sec-note">The real exam reports 100–1000 and passes at 720. This scales what you just answered onto the same range, weighted the way the exam weights its domains.</p>
+    <div class="scalewrap">
+      <div class="scalebar"><div class="scalefill" id="scaleFill"></div><div class="scalemark"><span>720</span></div></div>
+      <div class="scaleval"><b id="scaledOut">0</b><small>/ 1000</small></div>
+    </div>
+    <p class="verdict-line" id="readiness"></p>
+  </section>
+
+  <section class="glass pad">
+    <h2 class="sec-h">By domain</h2>
+    <div class="dombreak" id="domBreak"></div>
+  </section>
+
+  <div class="startrow">
+    <button class="btn primary ripple" id="againBtn">Another session</button>
+    <button class="btn ghost ripple" id="reviewMissed">Review what I missed</button>
+    <button class="btn ghost ripple" data-go="bank">Open the Bank</button>
+  </div>
+</section>
+
+<!-- ═══════════════ BANK ═══════════════ -->
+<section class="screen" id="s-bank" hidden>
+  <header class="hero small">
+    <p class="eyebrow">Every question, open book</p>
+    <h1 class="aurora-text">The Bank</h1>
+    <p class="hero-sub">All one thousand questions with their answers and explanations showing. This is the place to settle a doubt, not to be tested.</p>
+  </header>
+
+  <section class="glass pad">
+    <input class="search" id="bankSearch" type="search" placeholder="Search a situation or a topic — try &quot;hiring&quot; or &quot;citation&quot;" autocomplete="off">
+    <div class="chips" id="bankDomChips"></div>
+    <div class="chips" id="bankViewChips"></div>
+    <p class="ctrl-label">Topics</p>
+    <div class="chips topicchips" id="bankTopicChips"></div>
+    <p class="bankcount" id="bankCount"></p>
+  </section>
+
+  <div id="bankList" class="banklist"></div>
+  <button class="btn ghost ripple" id="bankMore" hidden>Show more</button>
+</section>
+
+<!-- ═══════════════ BLUEPRINT ═══════════════ -->
+<section class="screen" id="s-blueprint" hidden>
+  <header class="hero small">
+    <p class="eyebrow">What the exam actually covers</p>
+    <h1 class="aurora-text">Blueprint</h1>
+    <p class="hero-sub">The seven domains, their weights, and how many of the exam's 60 questions each one is worth.</p>
+  </header>
+  <section class="glass pad">
+    <div class="bpgrid" id="bpGrid"></div>
+  </section>
+  <section class="glass pad">
+    <h2 class="sec-h">How this deck is built</h2>
+    <div class="howrow">
+      <div class="how how-cyan"><h4>Blueprint-weighted sessions</h4><p>The bank holds a fixed count per domain; each session is apportioned to the exam weights by largest remainder, so short runs still span the material.</p></div>
+      <div class="how how-mint"><h4>Balanced answer key</h4><p>The correct answer sits in each of the four positions an equal number of times within every domain, with no run of three the same.</p></div>
+      <div class="how how-peri"><h4>Length carries no signal</h4><p>"Always pick the longest option" and every other length strategy is gated below 34% against a 25% chance baseline.</p></div>
+      <div class="how how-violet"><h4>No stub answers</h4><p>Every distractor is a real position someone could hold. A four-option question is never quietly a two-option one.</p></div>
+    </div>
+  </section>
+</section>
+
+</main>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>window.BANK = /*__BANK__*/;</script>
+<script>/*__EFFECTS__*/</script>
+<script>/*__APP_JS__*/</script>
+</body>
+</html>
