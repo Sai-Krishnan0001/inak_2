@@ -62,9 +62,27 @@ def trim(text):
 
 def main():
     report = "--report" in sys.argv
+    # --correct also trims the correct answer (field 3). Authoring drifts toward
+    # writing the correct option fuller than the distractors, which is the exact
+    # tell gate 3 measures; trimming its justification tail (which lives in `why`
+    # anyway) pulls it back into the distractor band.
+    fields = (3, 4, 5, 6) if "--correct" in sys.argv else (4, 5, 6)
+    only = None
+    for a in sys.argv[1:]:
+        if a.startswith("--file="):
+            only = a.split("=", 1)[1]
+    global TARGET
+    global FLOOR
+    for a in sys.argv[1:]:
+        if a.startswith("--target="):
+            TARGET = int(a.split("=", 1)[1])
+        if a.startswith("--floor="):
+            FLOOR = int(a.split("=", 1)[1])
     changed = 0
     considered = 0
     for path in sorted(AUTHORED.glob("d?-??.psv")):
+        if only and not path.name.startswith(only):
+            continue
         lines = path.read_text().splitlines()
         out = []
         for raw in lines:
@@ -75,7 +93,7 @@ def main():
             if len(parts) != 9:
                 out.append(raw)
                 continue
-            for idx in (4, 5, 6):
+            for idx in fields:
                 if len(parts[idx]) <= TARGET:
                     continue
                 considered += 1

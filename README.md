@@ -1,6 +1,6 @@
 # Claude Certified Associate — CCAO-F Practice Deck
 
-A thousand practice questions for the **Claude Certified Associate – Foundations**
+Two thousand practice questions for the **Claude Certified Associate – Foundations**
 exam, weighted to the published blueprint.
 
 **Open `index.html` in any browser.** That is the whole thing — one self-contained
@@ -58,6 +58,21 @@ pick is drawn to the real blueprint weights, so even a short run has the shape o
 showing. Use it to settle a doubt rather than to be tested. Anything you flag during a
 session waits for you there.
 
+## Nothing is seen only once
+
+Every question you answer is put on a review schedule. Get it right and it comes back
+later — after a day, then three, then a week, then three weeks, then two months. **Get it
+wrong and it drops to the front of the queue and returns in your very next session.**
+
+Up to half of each session is drawn from whatever is due, so the questions you keep
+missing keep finding you. The home screen shows how many are due, and a button runs a
+session made only of those.
+
+The deck also ramps. Each question is tagged core, exam or hard, and sessions weight
+those by how you are doing in that domain: mostly core while you are below 60%, the exam
+rung in the middle, and hard questions once you are past 80%. Your progress is stored in
+your own browser and goes nowhere else.
+
 ## A note on the score
 
 A 10 or 20-question run is a drill, not a verdict — the margin of error on a sample that
@@ -78,8 +93,14 @@ that had to pass before the deck would build:
   time, which would have let anyone beat the deck without reading it.
 - No stub answers. Every distractor is a position someone could actually hold, so a
   four-option question is never quietly a two-option one.
-- No near-duplicate questions, and no over-used topic within a domain.
+- No near-duplicate questions, and no over-used topic within a domain. This one also
+  took real work: a mid-build check found 400 near-duplicate pairs where a second set of
+  questions had been produced by rewording the first. Those 545 questions were rewritten
+  from scratch rather than shipped as padding.
 - Every question is a scenario, never a bare definition.
+- A genuine difficulty ladder in **every** domain — 293 core, 1,394 exam and 313 hard
+  questions, with all three rungs present in each of the seven domains, so drilling a
+  single domain still ramps.
 
 Domain weights were taken from the published exam guide and cross-checked across two
 independent sources. Anthropic's own exam guide is the authoritative scope document — check

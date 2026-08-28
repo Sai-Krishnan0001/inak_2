@@ -28,11 +28,41 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   /* ── persistence ─────────────────────────────────────────── */
-  const KEY = 'ccao.deck.v1';
-  const blank = () => ({ seen: {}, topics: {}, doubts: {}, history: [] });
+  const KEY = 'ccao.deck.v2';
+  const OLDKEY = 'ccao.deck.v1';
+  const blank = () => ({ sched: {}, topics: {}, doubts: {}, history: [], runs: 0 });
   let S = blank();
   try { S = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { S = blank(); }
+  // v1 kept a flat seen-map with no schedule. Carry it across as answered-once
+  // items that are already due, so nothing a returning user did is thrown away.
+  try {
+    const v1 = JSON.parse(localStorage.getItem(OLDKEY) || 'null');
+    if (v1 && !Object.keys(S.sched).length) {
+      Object.keys(v1.seen || {}).forEach(id => { S.sched[id] = { n: 1, ok: 0, box: 0, due: 0 }; });
+      S.topics = v1.topics || S.topics;
+      S.doubts = v1.doubts || S.doubts;
+      S.history = v1.history || S.history;
+    }
+  } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ── review scheduler ────────────────────────────────────────
+     A question is never finished with after one sighting. Answer it right and
+     it moves up a box and comes back later; answer it wrong and it drops to
+     box 0 and is due immediately, so it returns in the very next session.
+     Intervals are in days: same-day, then 1, 3, 7, 21, 60.              */
+  const BOXES = [0, 1, 3, 7, 21, 60];
+  const DAY = 864e5;
+  const isDue = r => !!r && (r.due || 0) <= Date.now();
+  const dueCount = () => Object.values(S.sched).filter(isDue).length;
+  function schedule(id, correct) {
+    const r = S.sched[id] || (S.sched[id] = { n: 0, ok: 0, box: 0, due: 0 });
+    r.n++;
+    if (correct) { r.ok++; r.box = Math.min(r.box + 1, BOXES.length - 1); } else { r.box = 0; }
+    r.due = Date.now() + BOXES[r.box] * DAY;
+    r.last = Date.now();
+    return r;
+  }
 
   /* ── chrome ──────────────────────────────────────────────── */
   const SCREENS = { home: '#s-home', quiz: '#s-quiz', results: '#s-results', bank: '#s-bank', blueprint: '#s-blueprint' };
@@ -59,8 +89,27 @@
   }
 
   /* ── progress helpers ────────────────────────────────────── */
-  const seenCount = () => Object.keys(S.seen).length;
+  const seenCount = () => Object.keys(S.sched).length;
   const doubtCount = () => Object.keys(S.doubts).length;
+  // Accuracy on a domain, once there is enough of it to mean anything. This is
+  // what moves a learner up the difficulty ladder rather than a fixed schedule.
+  function domMastery(id) {
+    let n = 0, ok = 0;
+    Q.forEach(q => {
+      if (q.domain !== id) return;
+      const r = S.sched[q.id];
+      if (r && r.n) { n += r.n; ok += r.ok; }
+    });
+    return n < 5 ? null : ok / n;
+  }
+  // Weight the tiers a session draws from by how the learner is doing: start on
+  // the warm-up rung, settle on the exam rung, finish being stretched by tier 4.
+  function tierWeights(id) {
+    const m = domMastery(id);
+    if (m === null || m < 0.6) return { 2: 4, 3: 2, 4: 1 };
+    if (m < 0.8) return { 2: 1, 3: 3, 4: 2 };
+    return { 2: 1, 3: 2, 4: 4 };
+  }
   function weakConcepts() {
     return Object.entries(S.topics)
       .filter(([, t]) => t.n >= 2 && t.ok / t.n < 0.7)
@@ -137,6 +186,11 @@
       $('#pgAcc').textContent = tot ? Math.round(100 * ok / tot) + '%' : '—';
       $('#pgDoubt').textContent = doubtCount();
       $('#pgLeft').textContent = Q.length - seenCount();
+      const due = dueCount();
+      $('#pgDue').textContent = due;
+      const rb = $('#reviewDueBtn');
+      rb.hidden = !due;
+      rb.textContent = 'Review the ' + due + ' due now';
       const weak = weakConcepts();
       $('#weakWrap').hidden = !weak.length;
       const wc = $('#weakChips');
@@ -182,20 +236,47 @@
   }
   const pick = (pool, n) => shuffle(pool).slice(0, n);
 
-  function draw() {
+  // Weighted draw: shuffle, then sort by tier weight so the rung the learner
+  // needs comes out first without ever hard-filtering a rung away (d2-d4 hold
+  // very few tier-2 items, and a hard filter there would starve the session).
+  function pickWeighted(pool, n, w) {
+    if (n <= 0) return [];
+    return shuffle(pool)
+      .map(q => ({ q, k: Math.random() / (w[q.tier] || 1) }))
+      .sort((a, b) => a.k - b.k)
+      .slice(0, n)
+      .map(x => x.q);
+  }
+
+  function draw(reviewOnly) {
     const split = apportion(sel.len, sel.doms);
     const weak = new Set(weakConcepts());
     const out = [];
     sel.doms.forEach(id => {
       const want = split[id];
       if (!want) return;
+      const w = tierWeights(id);
       const all = Q.filter(q => q.domain === id);
-      const unseen = all.filter(q => !S.seen[q.id]);
-      const pool = unseen.length >= want ? unseen : all;
-      const weakPool = pool.filter(q => weak.has(q.concept));
-      const chosen = pick(weakPool, Math.min(Math.floor(want * 0.4), weakPool.length));
-      const taken = new Set(chosen.map(q => q.id));
-      chosen.push(...pick(pool.filter(q => !taken.has(q.id)), want - chosen.length));
+      const due = all.filter(q => isDue(S.sched[q.id]));
+      const fresh = all.filter(q => !S.sched[q.id]);
+      const resting = all.filter(q => S.sched[q.id] && !isDue(S.sched[q.id]));
+      const chosen = [];
+      const taken = new Set();
+      const take = (pool, n) => {
+        const got = pickWeighted(pool.filter(q => !taken.has(q.id)), n, w);
+        got.forEach(q => taken.add(q.id));
+        chosen.push(...got);
+      };
+      if (reviewOnly) {
+        take(due, want);
+      } else {
+        // Up to half of every session is spent on what is due to come back —
+        // that is what makes a question you got wrong follow you around.
+        take(due, Math.min(Math.ceil(want * 0.5), due.length));
+        take(fresh.filter(q => weak.has(q.concept)), Math.floor(want * 0.3));
+        take(fresh, want - chosen.length);
+        take(resting, want - chosen.length);
+      }
       out.push(...chosen);
     });
     return shuffle(out);
@@ -204,10 +285,14 @@
   /* ── quiz ────────────────────────────────────────────────── */
   let run = null;
 
-  function startSession() {
+  function startSession(reviewOnly) {
     if (!sel.doms.length) { toast('Pick at least one domain first.'); return; }
-    const items = draw();
-    if (!items.length) { toast('No questions available for that selection.'); return; }
+    const items = draw(reviewOnly === true);
+    if (!items.length) {
+      toast(reviewOnly === true ? 'Nothing is due for review in those domains yet.'
+                                : 'No questions available for that selection.');
+      return;
+    }
     run = {
       mode: sel.mode,
       items, i: 0,
@@ -220,7 +305,8 @@
     renderQ();
     if (run.mode === 'exam') startTimer(); else stopTimer();
   }
-  $('#startBtn').onclick = startSession;
+  $('#startBtn').onclick = () => startSession(false);
+  $('#reviewDueBtn').onclick = () => startSession(true);
 
   let timerT = null;
   function startTimer() {
@@ -310,9 +396,10 @@
 
   function record(i) {
     const q = run.items[i];
-    S.seen[q.id] = 1;
+    const ok = run.answers[i] === q.answer;
+    schedule(q.id, ok);
     const t = S.topics[q.concept] || (S.topics[q.concept] = { n: 0, ok: 0 });
-    t.n++; if (run.answers[i] === q.answer) t.ok++;
+    t.n++; if (ok) t.ok++;
   }
 
   $('#checkBtn').onclick = () => {
@@ -420,7 +507,7 @@
     }
     let pool = Q.filter(q => bankState.doms.includes(q.domain));
     if (bankState.view === 'doubts') pool = pool.filter(q => S.doubts[q.id]);
-    if (bankState.view === 'unseen') pool = pool.filter(q => !S.seen[q.id]);
+    if (bankState.view === 'unseen') pool = pool.filter(q => !S.sched[q.id]);
     if (bankState.topic) pool = pool.filter(q => q.concept === bankState.topic);
     const needle = bankState.q.trim().toLowerCase();
     if (needle) {

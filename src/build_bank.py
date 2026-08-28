@@ -23,13 +23,13 @@ AUTHORED = SRC / "authored"
 # differ only because every count must divide by 4 for the answer-key balance
 # (gate 2) — 21% would be 210, which does not, so d2 holds 208 (20.8%).
 DOMAINS = [
-    {"id": "d1", "name": "Prompting & Task Execution",        "short": "Prompting",       "weight": 14, "count": 140, "accent": "cyan"},
-    {"id": "d2", "name": "Output Evaluation & Validation",    "short": "Output Eval",     "weight": 21, "count": 208, "accent": "azure"},
-    {"id": "d3", "name": "Product & Model Selection",         "short": "Model Choice",    "weight": 12, "count": 120, "accent": "indigo"},
-    {"id": "d4", "name": "Workflow Integration & Design",     "short": "Workflow",        "weight": 16, "count": 160, "accent": "purple"},
-    {"id": "d5", "name": "Configuration & Knowledge",         "short": "Configuration",   "weight": 12, "count": 120, "accent": "teal"},
-    {"id": "d6", "name": "Governance, Risk & Responsible Use","short": "Governance",      "weight": 15, "count": 152, "accent": "peri"},
-    {"id": "d7", "name": "Troubleshooting & Optimisation",    "short": "Troubleshooting", "weight": 10, "count": 100, "accent": "mint"},
+    {"id": "d1", "name": "Prompting & Task Execution",        "short": "Prompting",       "weight": 14, "count": 280, "accent": "cyan"},
+    {"id": "d2", "name": "Output Evaluation & Validation",    "short": "Output Eval",     "weight": 21, "count": 416, "accent": "azure"},
+    {"id": "d3", "name": "Product & Model Selection",         "short": "Model Choice",    "weight": 12, "count": 240, "accent": "indigo"},
+    {"id": "d4", "name": "Workflow Integration & Design",     "short": "Workflow",        "weight": 16, "count": 320, "accent": "purple"},
+    {"id": "d5", "name": "Configuration & Knowledge",         "short": "Configuration",   "weight": 12, "count": 240, "accent": "teal"},
+    {"id": "d6", "name": "Governance, Risk & Responsible Use","short": "Governance",      "weight": 15, "count": 304, "accent": "peri"},
+    {"id": "d7", "name": "Troubleshooting & Optimisation",    "short": "Troubleshooting", "weight": 10, "count": 200, "accent": "mint"},
 ]
 
 COUNT = {d["id"]: d["count"] for d in DOMAINS}
@@ -46,7 +46,7 @@ ABSOLUTE_EXEMPT = re.compile(
 DEFINITIONAL = re.compile(
     r"^(what is|what are|which of the following (is|are) the definition|define |what does .{1,30} mean\?$)", re.I
 )
-CONCEPT_CAP = 24
+CONCEPT_CAP = 48
 
 
 def parse():
@@ -229,6 +229,20 @@ def gates(rows, loose):
         fail(f"GATE 9 tier 2 is {100*tiers[2]/n:.1f}% of the bank (max 30%) — too easy for medium-hard")
     if 100 * tiers[4] / n > 35:
         fail(f"GATE 9 tier 4 is {100*tiers[4]/n:.1f}% of the bank (max 35%) — drifting past medium-hard")
+    # The ladder has to actually exist: the exam rung dominates, both outer rungs
+    # are genuinely present, and -- the part that matters for a candidate
+    # drilling one domain -- every domain carries all three rungs, so a session
+    # restricted to any single domain still ramps rather than sitting flat.
+    if 100 * tiers[3] / n < 50:
+        fail(f"GATE 9 tier 3 is only {100*tiers[3]/n:.1f}% of the bank (min 50%) — the exam rung must dominate")
+    for t in (2, 4):
+        if 100 * tiers[t] / n < 8:
+            fail(f"GATE 9 tier {t} is only {100*tiers[t]/n:.1f}% of the bank (min 8%) — no usable difficulty ladder")
+    for d in DOMAINS:
+        per_tier = Counter(r["tier"] for r in rows if r["domain"] == d["id"])
+        for t in (2, 3, 4):
+            if per_tier[t] < 12:
+                fail(f"GATE 9 {d['id']} has only {per_tier[t]} tier-{t} items (min 12) — ladder breaks in this domain")
 
     return fails, warns, {"ranks": dict(ranks), "tells": tells, "counts": dict(counts), "tiers": dict(tiers)}
 

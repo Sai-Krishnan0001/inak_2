@@ -1,6 +1,6 @@
 # ccao-deck
 
-A **1,000-question practice deck** for the **Claude Certified Associate – Foundations
+A **2,000-question practice deck** for the **Claude Certified Associate – Foundations
 (CCAO-F)** exam — seven blueprint domains, medium-hard, all case-scenario — plus a
 self-contained drill app with a practice mode and an exam simulation.
 
@@ -16,18 +16,18 @@ CCAO-F is **not** the exam `active/ccaf-*` targets. Those are all Claude Certifi
 
 | # | Domain | Weight | Held here |
 |---|---|---|---|
-| d1 | Prompting & Task Execution | 14% | 140 |
-| d2 | Output Evaluation & Validation | 21% | 208 |
-| d3 | Product & Model Selection | 12% | 120 |
-| d4 | Workflow Integration & Design | 16% | 160 |
-| d5 | Configuration & Knowledge | 12% | 120 |
-| d6 | Governance, Risk & Responsible Use | 15% | 152 |
-| d7 | Troubleshooting & Optimisation | 10% | 100 |
+| d1 | Prompting & Task Execution | 14% | 280 |
+| d2 | Output Evaluation & Validation | 21% | 416 |
+| d3 | Product & Model Selection | 12% | 240 |
+| d4 | Workflow Integration & Design | 16% | 320 |
+| d5 | Configuration & Knowledge | 12% | 240 |
+| d6 | Governance, Risk & Responsible Use | 15% | 304 |
+| d7 | Troubleshooting & Optimisation | 10% | 200 |
 
 Domain weights come from the published exam guide (cross-checked across two independent
 sources); the counts differ slightly from the weights because **every domain count must
-divide by 4** for the answer-key balance gate — 21% would be 210, which does not, so d2
-holds 208. Session weighting uses the true blueprint percentages, not the bank counts.
+divide by 4** for the answer-key balance gate — 21% would be 420, which does not, so d2
+holds 416. Session weighting uses the true blueprint percentages, not the bank counts.
 
 ## Stack
 
@@ -39,8 +39,8 @@ the user chose none for this build, as they did for `ccaf-plain`.
 
 | Path | Purpose |
 |---|---|
-| `index.html` | **The deliverable.** Self-contained, ~912 KB, opens anywhere |
-| `src/authored/dN-XX.psv` | The questions. Source of truth, 26 files, pipe-separated |
+| `index.html` | **The deliverable.** Self-contained, ~1.6 MB, opens anywhere |
+| `src/authored/dN-XX.psv` | The questions. Source of truth, 43 files, pipe-separated |
 | `src/build_bank.py` | Parses, places the answer key, runs the gates, emits `bank.json` |
 | `src/bank.json` | Built bank. Generated — never edit |
 | `src/parity.py` | Length-parity worklist + a TSV applier for option rewrites |
@@ -75,7 +75,7 @@ tempting. Both are shown in practice mode and in the Bank.
 
 ## The gates
 
-1. **Domain counts** — exact per-domain counts, 1,000 total.
+1. **Domain counts** — exact per-domain counts, 2,000 total.
 2. **Answer-position balance** — exactly count/4 per letter per domain, no run of three.
 3. **Length must not predict the answer** — "always pick the *n*th-longest option" must
    score under 34% for every *n* (chance is 25%).
@@ -85,7 +85,9 @@ tempting. Both are shown in practice mode and in the Bank.
 6. **Duplicate stems** — zero pairs above 85% similarity; no correct answer reused >3x in a domain.
 7. **Explanations** — `why` and `traps` both substantive.
 8. **Scenario framing** — no stem under 12 words, none phrased as a bare definition.
-9. **Tier mix** — tier 2 under 30%, tier 4 under 35%, so the bank stays medium-hard.
+9. **Tier mix and ladder** — tier 2 under 30% and tier 4 under 35% so the bank stays
+   medium-hard, tier 3 at least 50%, both outer rungs at least 8%, and **at least 12 items
+   per tier in every domain** so a single-domain session still ramps.
 
 ## Gotchas
 
@@ -127,3 +129,16 @@ tempting. Both are shown in practice mode and in the Bank.
 - A domain with fewer than 3 questions drawn is labelled **Thin**, never Strong/Weak.
 - `[hidden]{display:none !important}` is load-bearing — `.pill` sets `display`, which
   otherwise beats the `hidden` attribute and leaves an empty timer pill visible.
+
+- **Reworded questions are not new questions.** A second thousand authored for d3, d4 and
+  d5 turned out to be the first thousand restated — gate 5 found 400 near-duplicate pairs.
+  d2-06..08, d3-04..06, d4-05..08 and d5-04/05 were rewritten from scratch (545 questions
+  in total). When extending the bank, run gate 5 *before* trusting a batch.
+- **Do not relax a gate to fit the data.** d2-d4 originally had almost no tier-2 or tier-4
+  items, and GATE 9's ladder check was briefly loosened to accommodate that. The honest fix
+  was to author the missing rungs during the rewrite; the strict thresholds are back.
+- **The review schedule is in `app.js`, not the bank.** Leitner boxes at 0/1/3/7/21/60 days,
+  keyed by question id in `localStorage` under `ccao.deck.v2` (v1 state migrates in). A
+  wrong answer resets to box 0, which makes it due immediately. `draw()` fills up to half a
+  session from what is due, then unseen, then weak topics; `tierWeights()` shifts the
+  core/exam/hard mix by the learner's accuracy in that domain.

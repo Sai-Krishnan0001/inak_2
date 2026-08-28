@@ -28,7 +28,7 @@
   <header class="hero">
     <p class="eyebrow">Claude Certified Associate — Foundations</p>
     <h1 class="aurora-text">CCAO-F</h1>
-    <p class="hero-sub spotlight-words">One thousand medium-hard practice questions, weighted to the real blueprint, for the exam that tests judgement rather than code.</p>
+    <p class="hero-sub spotlight-words">Two thousand medium-hard practice questions, weighted to the real blueprint, for the exam that tests judgement rather than code.</p>
   </header>
 
   <section class="glass pad summary">
@@ -38,7 +38,7 @@
       the real exam tests. Nothing here needs an API, a line of code, or a developer background.</p>
 
     <div class="statrow">
-      <div class="stat"><span class="k">Questions</span><b class="v" id="statTotal">1000</b></div>
+      <div class="stat"><span class="k">Questions</span><b class="v" id="statTotal">2000</b></div>
       <div class="stat"><span class="k">Domains</span><b class="v">7</b></div>
       <div class="stat"><span class="k">Real exam</span><b class="v">60<small>q</small></b></div>
       <div class="stat"><span class="k">Time limit</span><b class="v">120<small>min</small></b></div>
@@ -49,6 +49,7 @@
       <div class="how how-mint"><h4>Two ways to run it</h4><p>Practice marks each answer the moment you commit to it. Exam holds everything back until you submit, then scores you the way Pearson VUE does.</p></div>
       <div class="how how-cyan"><h4>Weighted to the blueprint</h4><p>Every session is drawn to the real domain weights, so a 60-question run has the same shape as the exam itself.</p></div>
       <div class="how how-peri"><h4>Every answer explained</h4><p>Each question tells you why the right answer wins <em>and</em> what made each wrong one tempting — the trap is usually the lesson.</p></div>
+      <div class="how how-indigo"><h4>Nothing is seen only once</h4><p>Every question you answer is scheduled to come back. Get it right and it returns later; get it wrong and it is back in your next session.</p></div>
       <div class="how how-violet"><h4>Non-guessable by design</h4><p>The answer key is evenly balanced across A–D, and option length was gated so that guessing by shape cannot beat chance.</p></div>
     </div>
   </section>
@@ -65,13 +66,17 @@
       <div class="stat"><span class="k">Answered</span><b class="v" id="pgSeen">0</b></div>
       <div class="stat"><span class="k">Accuracy</span><b class="v" id="pgAcc">—</b></div>
       <div class="stat"><span class="k">Flagged</span><b class="v" id="pgDoubt">0</b></div>
-      <div class="stat"><span class="k">Bank left</span><b class="v" id="pgLeft">1000</b></div>
+      <div class="stat"><span class="k">Bank left</span><b class="v" id="pgLeft">2000</b></div>
+      <div class="stat"><span class="k">Due for review</span><b class="v" id="pgDue">0</b></div>
     </div>
     <div class="weakwrap" id="weakWrap" hidden>
-      <p class="sec-note">Topics you are currently below 70% on. Up to 40% of each session is steered here automatically.</p>
+      <p class="sec-note">Topics you are currently below 70% on. Sessions steer toward these, and anything you get wrong returns in the next one until it sticks.</p>
       <div class="chips" id="weakChips"></div>
     </div>
-    <button class="btn ghost small" id="resetBtn">Reset my progress</button>
+    <div class="startrow">
+      <button class="btn primary ripple" id="reviewDueBtn" hidden>Review what is due</button>
+      <button class="btn ghost small" id="resetBtn">Reset my progress</button>
+    </div>
   </section>
 
   <!-- session builder -->
@@ -170,7 +175,7 @@
   <header class="hero small">
     <p class="eyebrow">Every question, open book</p>
     <h1 class="aurora-text">The Bank</h1>
-    <p class="hero-sub">All one thousand questions with their answers and explanations showing. This is the place to settle a doubt, not to be tested.</p>
+    <p class="hero-sub">All two thousand questions with their answers and explanations showing. This is the place to settle a doubt, not to be tested.</p>
   </header>
 
   <section class="glass pad">
