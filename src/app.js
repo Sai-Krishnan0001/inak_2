@@ -46,6 +46,31 @@
   } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
+  /* ── item shapes ──────────────────────────────────────────────
+     The exam has two: single-answer (one of four) and multiple-response
+     (two or three of five, with the item stating how many). `answers[i]` holds
+     a number for the first and a sorted array for the second.            */
+  const LETTERS = 'ABCDE';
+  const isMulti = q => q.kind === 'multi';
+  const wanted = q => (isMulti(q) ? q.answers.length : 1);
+  const keyOf = q => (isMulti(q) ? q.answers : [q.answer]);
+  const COUNT_WORD = { 2: 'two', 3: 'three' };
+
+  function chosen(a) {
+    if (a == null) return [];
+    return Array.isArray(a) ? a : [a];
+  }
+  function isRight(q, a) {
+    const got = chosen(a), key = keyOf(q);
+    return got.length === key.length && key.every((v, i) => got[i] === v);
+  }
+  function answered(q, a) {
+    // A multiple-response item is only submittable once exactly as many
+    // responses are ticked as the item asked for.
+    return isMulti(q) ? chosen(a).length === wanted(q) : a != null;
+  }
+  const keyLabel = q => keyOf(q).map(i => LETTERS[i]).join(' and ');
+
   /* ── review scheduler ────────────────────────────────────────
      A question is never finished with after one sighting. Answer it right and
      it moves up a box and comes back later; answer it wrong and it drops to
@@ -332,7 +357,7 @@
     run.items.forEach((q, i) => {
       const seg = el('i');
       if (run.mode === 'practice') {
-        if (run.marked[i]) seg.className = run.answers[i] === q.answer ? 'hit' : 'miss';
+        if (run.marked[i]) seg.className = isRight(q, run.answers[i]) ? 'hit' : 'miss';
       } else if (run.answers[i] != null) seg.className = 'hit';
       if (i === run.i) seg.className = 'now';
       if (run.mode === 'exam') { seg.style.cursor = 'pointer'; seg.onclick = () => { run.i = i; renderQ(); }; }
@@ -348,6 +373,12 @@
     dp.textContent = d.short; dp.dataset.dc = '1'; dp.style.setProperty('--dc', DC(q.domain));
     $('#qConcept').textContent = q.concept;
     $('#stem').textContent = q.stem;
+    // The exam guide says each item states how many responses to select, so a
+    // multiple-response item carries that instruction rather than leaving the
+    // candidate to infer it from the option count.
+    const sel = $('#selectN');
+    sel.hidden = !isMulti(q);
+    if (isMulti(q)) sel.textContent = 'Select ' + (COUNT_WORD[wanted(q)] || wanted(q)) + ' responses.';
     $('#doubtBtn').classList.toggle('on', !!S.doubts[q.id]);
 
     const practice = run.mode === 'practice';
@@ -356,23 +387,32 @@
     const opts = $('#options');
     opts.innerHTML = '';
     q.options.forEach((text, i) => {
-      const b = el('button', 'option', `<span class="marker">${'ABCD'[i]}</span><span class="otext">${esc(text)}</span>`);
-      if (run.answers[run.i] === i) b.classList.add('selected');
+      const b = el('button', 'option', `<span class="marker">${LETTERS[i]}</span><span class="otext">${esc(text)}</span>`);
+      if (chosen(run.answers[run.i]).includes(i)) b.classList.add('selected');
       if (practice && marked) {
         b.disabled = true;
-        if (i === q.answer) b.classList.add('correct');
-        else if (i === run.answers[run.i]) b.classList.add('incorrect');
+        if (keyOf(q).includes(i)) b.classList.add('correct');
+        else if (chosen(run.answers[run.i]).includes(i)) b.classList.add('incorrect');
       }
       b.onclick = () => {
         if (practice && run.marked[run.i]) return;
-        run.answers[run.i] = i;
+        if (isMulti(q)) {
+          // toggle, and never let more than the requested number stay ticked
+          const cur = chosen(run.answers[run.i]).slice();
+          const at = cur.indexOf(i);
+          if (at >= 0) cur.splice(at, 1);
+          else if (cur.length < wanted(q)) cur.push(i);
+          run.answers[run.i] = cur.sort((x, y) => x - y);
+        } else {
+          run.answers[run.i] = i;
+        }
         renderQ();
       };
       opts.appendChild(b);
     });
 
     $('#checkBtn').hidden = !practice || marked;
-    $('#checkBtn').disabled = run.answers[run.i] == null;
+    $('#checkBtn').disabled = !answered(q, run.answers[run.i]);
     $('#prevBtn').hidden = practice || run.i === 0;
     $('#advBtn').hidden = practice;
     $('#advBtn').textContent = run.i === run.items.length - 1 ? 'Submit exam' : 'Next';
@@ -383,12 +423,14 @@
 
   function showFeedback() {
     const q = run.items[run.i];
-    const ok = run.answers[run.i] === q.answer;
+    const ok = isRight(q, run.answers[run.i]);
     const v = $('#verdict');
     v.className = 'verdict ' + (ok ? 'ok' : 'no');
     v.innerHTML = `<span class="g">${ok ? '✓' : '✕'}</span>` +
-      (ok ? 'Correct' : 'Not quite — the answer is ' + 'ABCD'[q.answer]);
-    $('#exWhyH').textContent = ok ? 'Why that answer is right' : 'Why ' + 'ABCD'[q.answer] + ' is right';
+      (ok ? 'Correct' : 'Not quite — the answer is ' + keyLabel(q));
+    $('#exWhyH').textContent = ok
+      ? (isMulti(q) ? 'Why those answers are right' : 'Why that answer is right')
+      : 'Why ' + keyLabel(q) + ' ' + (isMulti(q) ? 'are' : 'is') + ' right';
     $('#exWhy').textContent = q.why;
     $('#exTraps').textContent = q.traps;
     $('#nextBtn').textContent = run.i === run.items.length - 1 ? 'See my results' : 'Next question';
@@ -396,7 +438,7 @@
 
   function record(i) {
     const q = run.items[i];
-    const ok = run.answers[i] === q.answer;
+    const ok = isRight(q, run.answers[i]);
     schedule(q.id, ok);
     const t = S.topics[q.concept] || (S.topics[q.concept] = { n: 0, ok: 0 });
     t.n++; if (ok) t.ok++;
@@ -437,13 +479,13 @@
     save();
 
     const n = run.items.length;
-    const correct = run.items.reduce((a, q, i) => a + (run.answers[i] === q.answer ? 1 : 0), 0);
+    const correct = run.items.reduce((a, q, i) => a + (isRight(q, run.answers[i]) ? 1 : 0), 0);
     const pct = Math.round(100 * correct / n);
 
     const per = {};
     run.items.forEach((q, i) => {
       const p = per[q.domain] || (per[q.domain] = { n: 0, ok: 0 });
-      p.n++; if (run.answers[i] === q.answer) p.ok++;
+      p.n++; if (isRight(q, run.answers[i])) p.ok++;
     });
     const live = Object.keys(per);
     const wsum = live.reduce((a, id) => a + DMAP[id].weight, 0) || 1;
@@ -490,7 +532,7 @@
 
   $('#againBtn').onclick = () => go('home');
   $('#reviewMissed').onclick = () => {
-    const missed = run ? run.items.filter((q, i) => run.answers[i] !== q.answer) : [];
+    const missed = run ? run.items.filter((q, i) => !isRight(q, run.answers[i])) : [];
     if (!missed.length) { toast('Nothing missed in that session.'); return; }
     bankState.explicit = missed.map(q => q.id);
     bankState.view = 'explicit';
@@ -566,7 +608,7 @@
     body.hidden = true;
     body.innerHTML =
       q.options.map((o, i) =>
-        `<div class="bq-opt${i === q.answer ? ' right' : ''}"><span class="m">${'ABCD'[i]}</span><span>${esc(o)}</span></div>`).join('') +
+        `<div class="bq-opt${keyOf(q).includes(i) ? ' right' : ''}"><span class="m">${LETTERS[i]}</span><span>${esc(o)}</span></div>`).join('') +
       `<div class="expl expl-mint"><h4>Why</h4><p>${esc(q.why)}</p></div>` +
       `<div class="expl expl-indigo"><h4>The traps</h4><p>${esc(q.traps)}</p></div>`;
     head.onclick = () => { body.hidden = !body.hidden; };

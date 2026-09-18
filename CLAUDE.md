@@ -1,7 +1,8 @@
 # ccao-deck
 
-A **2,000-question practice deck** for the **Claude Certified Associate – Foundations
-(CCAO-F)** exam — seven blueprint domains, medium-hard, all case-scenario — plus a
+A **2,140-question practice deck** for the **Claude Certified Associate – Foundations
+(CCAO-F)** exam — seven blueprint domains, medium-hard, discrete items in both of the
+exam's two formats — plus a
 self-contained drill app with a practice mode and an exam simulation.
 
 Built to be handed to someone else who is sitting the exam. It assumes no coding
@@ -16,13 +17,16 @@ CCAO-F is **not** the exam `active/ccaf-*` targets. Those are all Claude Certifi
 
 | # | Domain | Weight | Held here |
 |---|---|---|---|
-| d1 | Prompting & Task Execution | 14% | 280 |
-| d2 | Output Evaluation & Validation | 21% | 416 |
-| d3 | Product & Model Selection | 12% | 240 |
-| d4 | Workflow Integration & Design | 16% | 320 |
-| d5 | Configuration & Knowledge | 12% | 240 |
-| d6 | Governance, Risk & Responsible Use | 15% | 304 |
-| d7 | Troubleshooting & Optimisation | 10% | 200 |
+| d1 | Prompting and Task Execution | 14% | 280 + 20 |
+| d2 | Output Evaluation and Validation | 21% | 416 + 29 |
+| d3 | Product and Model Selection | 12% | 240 + 17 |
+| d4 | Workflow Integration and Solution Design | 16% | 320 + 22 |
+| d5 | Configuration and Knowledge Management | 12% | 240 + 17 |
+| d6 | Governance, Risk, and Responsible Use | 15% | 304 + 21 |
+| d7 | Troubleshooting and Optimization | 10% | 200 + 14 |
+
+Counts are `single-answer + multiple-response`. Domain **names are the exam guide's**, because
+they are what appears on a candidate's score report.
 
 Domain weights come from the published exam guide (cross-checked across two independent
 sources); the counts differ slightly from the weights because **every domain count must
@@ -39,8 +43,8 @@ the user chose none for this build, as they did for `ccaf-plain`.
 
 | Path | Purpose |
 |---|---|
-| `index.html` | **The deliverable.** Self-contained, ~1.6 MB, opens anywhere |
-| `src/authored/dN-XX.psv` | The questions. Source of truth, 43 files, pipe-separated |
+| `index.html` | **The deliverable.** Self-contained, ~1.8 MB, opens anywhere |
+| `src/authored/dN-XX.psv` | Single-answer questions. 51 files, 9 fields, pipe-separated |
 | `src/build_bank.py` | Parses, places the answer key, runs the gates, emits `bank.json` |
 | `src/bank.json` | Built bank. Generated — never edit |
 | `src/parity.py` | Length-parity worklist + a TSV applier for option rewrites |
@@ -75,7 +79,7 @@ tempting. Both are shown in practice mode and in the Bank.
 
 ## The gates
 
-1. **Domain counts** — exact per-domain counts, 2,000 total.
+1. **Domain counts** — exact per-domain counts per item shape, 2,140 total.
 2. **Answer-position balance** — exactly count/4 per letter per domain, no run of three.
 3. **Length must not predict the answer** — "always pick the *n*th-longest option" must
    score under 34% for every *n* (chance is 25%).
@@ -142,3 +146,35 @@ tempting. Both are shown in practice mode and in the Bank.
   wrong answer resets to box 0, which makes it due immediately. `draw()` fills up to half a
   session from what is due, then unseen, then weak topics; `tierWeights()` shifts the
   core/exam/hard mix by the learner's accuracy in that domain.
+
+## The two item shapes
+
+The exam guide (section 5) specifies "Multiple-choice and multiple-response items; each item
+states how many responses to select". The deck carries both.
+
+- **`src/authored/dN-XX.psv`** — 9 fields, 4 options, exactly one correct, written first.
+  Gate 2 gives these an exactly balanced answer key.
+- **`src/authored/dN-mX.psv`** — 11 fields: `concept|tier|ncorrect|stem|o1..o5|why|traps`.
+  Five options; the first `ncorrect` (2 or 3) are the correct ones. There is no clean
+  per-letter quota available here, so **gate 2b** checks the weaker property instead: no slot
+  is correct disproportionately often. **Gate 3d** is the length leak for this shape — "tick
+  the N longest options" must not beat 25%.
+
+The app scores multiple-response **all-or-nothing** (partial selections are wrong, as on the
+real exam) and renders the "Select two responses." line from `ncorrect` rather than trusting
+each stem to carry it.
+
+## Content validity, not just statistical hygiene
+
+The gates measure whether the bank is internally fair. None of them measures whether it is
+about the right things. The exam guide's **30 second-level objectives** are the content
+standard; `shared/ccao/SYLLABUS.md` lists them in full.
+
+The 140 multiple-response items were written to close measured gaps against those objectives.
+Before this pass, **connectors (Google Drive, Gmail) had zero coverage** across 2,000 questions
+despite being objective 5.2; research mode, brainstorming, the model family names and audience
+adaptation were all similarly thin.
+
+**Before adding questions, check coverage against the 30 objectives — not just the seven
+domain headings.** A bank can sit perfectly on the domain weights and still miss an objective
+entirely, which is exactly what happened here.

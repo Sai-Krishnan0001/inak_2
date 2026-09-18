@@ -1,7 +1,7 @@
 # Claude Certified Associate — CCAO-F Practice Deck
 
-Two thousand practice questions for the **Claude Certified Associate – Foundations**
-exam, weighted to the published blueprint.
+**2,140 practice questions** for the **Claude Certified Associate – Foundations**
+exam, built to Anthropic's own published exam guide.
 
 **Open `index.html` in any browser.** That is the whole thing — one self-contained
 file, no install, no internet needed, works offline.
@@ -17,11 +17,20 @@ responsibly. No API, no code, no software background required.
 
 |  |  |
 |---|---|
+| Exam code | CCAO-F |
 | Questions | 60 |
+| Item format | Multiple-choice **and multiple-response** — each item says how many to select |
 | Time | 120 minutes |
-| Pass mark | 720 on a 100–1000 scale |
-| Price | $99 |
-| Delivery | Pearson VUE, online or at a test centre |
+| Pass mark | 720 on a 100–1,000 scale |
+| Price | $99 USD |
+| Delivery | Pearson VUE, online proctored or at a test centre |
+| Validity | 12 months |
+| Prerequisites | None |
+| Retakes | 14 days, then 30, then 90; max four per rolling year |
+
+Source: **Claude Certified Associate – Foundations Exam Guide, v1.0, July 2026**, linked from
+the [Anthropic Partner Academy certifications page](https://anthropic-partners.skilljar.com/page/partner-certifications).
+That guide is the authoritative document — read it before you book.
 
 Two things worth checking before you book: the Associate credential **does not count
 toward Claude Partner Network eligibility** (unlike the Developer and Architect exams),
@@ -31,18 +40,27 @@ and registration appears to require a partner-organisation email address.
 
 | Domain | Weight | Roughly, of the 60 |
 |---|---|---|
-| Output Evaluation & Validation | 21% | 13 |
-| Workflow Integration & Design | 16% | 10 |
-| Governance, Risk & Responsible Use | 15% | 9 |
-| Prompting & Task Execution | 14% | 8 |
-| Product & Model Selection | 12% | 7 |
-| Configuration & Knowledge Management | 12% | 7 |
-| Troubleshooting & Optimisation | 10% | 6 |
+| Output Evaluation and Validation | 21% | 13 |
+| Workflow Integration and Solution Design | 16% | 10 |
+| Governance, Risk, and Responsible Use | 15% | 9 |
+| Prompting and Task Execution | 14% | 8 |
+| Product and Model Selection | 12% | 7 |
+| Configuration and Knowledge Management | 12% | 7 |
+| Troubleshooting and Optimization | 10% | 6 |
+
+Names and weights are reproduced from the exam guide's section 6. The guide also publishes
+**30 second-level objectives** beneath these seven domains, and every question here is written
+against one of them.
 
 Output evaluation is the heaviest domain, and that is the shape of the job: the Associate's
 core responsibility is deciding whether what came back is accurate, complete and fit to send.
 
 ## How to use it
+
+**Two item formats, as the exam has.** Most questions are multiple-choice: four options, one
+right. **140 are multiple-response**: five options, two or three right, and the question tells
+you how many to pick. Those are marked all-or-nothing — half right is wrong — because that is
+how the real exam scores them.
 
 **Practice mode** marks each answer the moment you commit to it, then shows why the right
 answer wins and what made each wrong one tempting. This is the mode for learning.
@@ -102,6 +120,19 @@ that had to pass before the deck would build:
   questions, with all three rungs present in each of the seven domains, so drilling a
   single domain still ramps.
 
-Domain weights were taken from the published exam guide and cross-checked across two
-independent sources. Anthropic's own exam guide is the authoritative scope document — check
-it before you study to these weights.
+## Where this comes from
+
+Everything structural here — the seven domains and their weights, the 60/120/720 shape, the two
+item formats, the $99 fee, the 12-month validity — is taken from **Anthropic's own CCAO-F exam
+guide (v1.0, July 2026)**, not from third-party summaries. It is linked from the
+[certifications page](https://anthropic-partners.skilljar.com/page/partner-certifications).
+
+**Official preparation**, free and open without a partner login: the
+[Claude Certified Associate – Foundations prep path](https://anthropic-partners.skilljar.com/path/claude-certified-associate-foundations)
+— eight courses, about six and a half hours, one per domain. The exam guide itself also carries
+three official sample questions with full rationale.
+
+One thing to check early: while those courses are open, **registering for the exam requires a
+partner email address on a recognised company domain.**
+
+This deck is practice. The guide is the syllabus — read it.

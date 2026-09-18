@@ -258,3 +258,17 @@ html.architect .brand-mark{ animation-duration:2.4s }
 
 /* [hidden] must beat any component display rule (the timer pill, feedback, etc.) */
 [hidden]{ display:none !important }
+
+
+/* multiple-response: the "select N" instruction the exam guide requires each
+   such item to state. Deliberately quiet — it is an instruction, not a heading. */
+.selectn{
+  margin:-2px 0 14px; font-size:.82rem; font-weight:600; letter-spacing:.02em;
+  color:var(--accent-mint,#8fe3c4); text-transform:uppercase;
+}
+.bq-kind{
+  display:inline-block; margin-left:8px; padding:1px 7px; border-radius:999px;
+  font-size:.66rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  background:color-mix(in srgb, var(--accent-mint,#8fe3c4) 16%, transparent);
+  color:var(--accent-mint,#8fe3c4);
+}
