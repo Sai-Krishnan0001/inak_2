@@ -27,13 +27,13 @@ AUTHORED = SRC / "authored"
 # multiple-response ones. `count` must divide by 4 for the answer-key balance
 # (gate 2) — 21% of 2000 would be 420, which does not, so d2 holds 416.
 DOMAINS = [
-    {"id": "d1", "name": "Prompting and Task Execution",          "short": "Prompting",       "weight": 14, "count": 280, "multi": 20, "accent": "cyan"},
-    {"id": "d2", "name": "Output Evaluation and Validation",      "short": "Output Eval",     "weight": 21, "count": 416, "multi": 29, "accent": "azure"},
-    {"id": "d3", "name": "Product and Model Selection",           "short": "Model Choice",    "weight": 12, "count": 240, "multi": 17, "accent": "indigo"},
-    {"id": "d4", "name": "Workflow Integration and Solution Design","short": "Workflow",      "weight": 16, "count": 320, "multi": 22, "accent": "purple"},
-    {"id": "d5", "name": "Configuration and Knowledge Management","short": "Configuration",   "weight": 12, "count": 240, "multi": 17, "accent": "teal"},
-    {"id": "d6", "name": "Governance, Risk, and Responsible Use", "short": "Governance",      "weight": 15, "count": 304, "multi": 21, "accent": "peri"},
-    {"id": "d7", "name": "Troubleshooting and Optimization",      "short": "Troubleshooting", "weight": 10, "count": 200, "multi": 14, "accent": "mint"},
+    {"id": "d1", "name": "Prompting and Task Execution",          "short": "Prompting",       "weight": 14, "count": 296, "multi": 20, "accent": "cyan"},
+    {"id": "d2", "name": "Output Evaluation and Validation",      "short": "Output Eval",     "weight": 21, "count": 444, "multi": 29, "accent": "azure"},
+    {"id": "d3", "name": "Product and Model Selection",           "short": "Model Choice",    "weight": 12, "count": 252, "multi": 18, "accent": "indigo"},
+    {"id": "d4", "name": "Workflow Integration and Solution Design","short": "Workflow",      "weight": 16, "count": 336, "multi": 24, "accent": "purple"},
+    {"id": "d5", "name": "Configuration and Knowledge Management","short": "Configuration",   "weight": 12, "count": 252, "multi": 18, "accent": "teal"},
+    {"id": "d6", "name": "Governance, Risk, and Responsible Use", "short": "Governance",      "weight": 15, "count": 316, "multi": 21, "accent": "peri"},
+    {"id": "d7", "name": "Troubleshooting and Optimization",      "short": "Troubleshooting", "weight": 10, "count": 208, "multi": 16, "accent": "mint"},
 ]
 
 COUNT = {d["id"]: d["count"] for d in DOMAINS}
@@ -44,10 +44,21 @@ TOTAL = sum(d["count"] + d["multi"] for d in DOMAINS)
 # items; each item states how many responses to select".
 #   single (dN-XX.psv, 9 fields)  — 4 options, exactly 1 correct, written first
 #   multi  (dN-mX.psv, 11 fields) — 5 options, `ncorrect` (2 or 3) correct, written first
-FIELDS = ("concept", "tier", "stem", "correct", "d1", "d2", "d3", "why", "traps")
-FIELDS_MULTI = ("concept", "tier", "ncorrect", "stem",
+FIELDS = ("concept", "objective", "tier", "stem", "correct", "d1", "d2", "d3", "why", "traps")
+FIELDS_MULTI = ("concept", "objective", "tier", "ncorrect", "stem",
                 "o1", "o2", "o3", "o4", "o5", "why", "traps")
 MULTI_OPTS = 5
+
+# The exam guide publishes 30 second-level objectives under the seven domains and
+# says items are written against them. Domain weights alone do not make a bank
+# valid: it can sit exactly on the weights and still leave an objective at zero,
+# which is what this bank did for 3.4 before the objective field existed.
+OBJECTIVES = json.loads((SRC.parent.parent.parent / "shared" / "ccao" / "objectives.json").read_text()) \
+    if (SRC.parent.parent.parent / "shared" / "ccao" / "objectives.json").exists() else None
+OBJ_MIN_SHARE = 12.0   # each objective must hold at least this % of its own domain
+# An interrogative stem is what makes an item an exam question rather than a
+# scenario with options attached. All three of the guide's samples end with one.
+INTERROGATIVE = re.compile(r"\?\s*$")
 
 ABSOLUTES = re.compile(r"\b(always|never|all|only|every|none|any)\b", re.I)
 # phrases where an absolute word is load-bearing vocabulary rather than a tell
@@ -163,11 +174,19 @@ def place_answers(rows):
     return place_multi(rows)
 
 
-def gates(rows, loose):
+def gates(rows, loose, migrating=False):
     fails, warns = [], []
 
     def fail(msg):
         (warns if loose else fails).append(msg)
+
+    def fail_or_stage(msg):
+        """Gates 12 and 13 define the exam-fidelity standard the bank is being
+        rewritten to. They are hard gates: the default build fails until the
+        rewrite is finished. `--migrating` stages them as warnings so partial
+        progress can ship, and prints how far along the rewrite actually is —
+        the point is that the shortfall stays visible, not that the bar moves."""
+        (warns if (loose or migrating) else fails).append(msg)
 
     # 1 — domain counts, to the blueprint, per item shape
     singles = Counter(r["domain"] for r in rows if r["kind"] == "single")
@@ -251,15 +270,25 @@ def gates(rows, loose):
             return [i for i in range(MULTI_OPTS) if i not in r["answers"]]
         return [i for i in range(4) if i != r["answer"]]
 
-    stubs = sum(1 for r in rows for i in wrong_slots(r) if len(r["options"][i]) < 35)
+    # Threshold calibrated against the exam guide's own sample items (section 8),
+    # whose options run 27-86 characters with three of twelve under 45. A short
+    # option is not automatically a stub: "Skip the analysis entirely." is 27
+    # characters and a perfectly real position. What makes a stub is being too
+    # short to state a position at all, which is nearer 25.
+    stubs = sum(1 for r in rows for i in wrong_slots(r) if len(r["options"][i]) < 25)
     stub_pct = 100 * stubs / max(sum(len(wrong_slots(r)) for r in rows), 1)
     if stub_pct > 8:
-        fail(f"GATE 3b {stub_pct:.1f}% of distractors are under 35 characters (max 8%) — stubs, not distractors")
+        fail(f"GATE 3b {stub_pct:.1f}% of distractors are under 25 characters (max 8%) — stubs, not distractors")
+    # Also recalibrated: the guide's third sample has a 3.19x spread, so a 2.5x
+    # cap was stricter than the exam itself and was pushing options to be padded
+    # to a uniform length, which is what made them read as statements rather than
+    # as answers. Gate 3 above is the real protection — spread only matters if it
+    # predicts the key, and gate 3 measures that directly.
     wide = sum(1 for r in rows
-               if max(len(o) for o in r["options"]) > 2.5 * max(1, min(len(o) for o in r["options"])))
+               if max(len(o) for o in r["options"]) > 3.5 * max(1, min(len(o) for o in r["options"])))
     alln = max(len(rows), 1)
     if 100 * wide / alln > 25:
-        fail(f"GATE 3c {100*wide/alln:.1f}% of items have a >2.5x long/short option spread (max 25%)")
+        fail(f"GATE 3c {100*wide/alln:.1f}% of items have a >3.5x long/short option spread (max 25%)")
 
     # 4 — absolute-word tells
     tells = 0
@@ -355,6 +384,42 @@ def gates(rows, loose):
         if len(r["answers"]) != r["ncorrect"]:
             fail(f"GATE 10 {r['source']} placed {len(r['answers'])} answers, expected {r['ncorrect']}")
 
+    # 11 — every item names an objective that exists in its own domain.
+    obj_by_dom = {}
+    if OBJECTIVES:
+        for d, lst in OBJECTIVES["objectives"].items():
+            obj_by_dom[d] = {o["id"] for o in lst}
+        for r in rows:
+            valid = obj_by_dom.get(r["domain"], set())
+            if r["objective"] not in valid:
+                fail(f"GATE 11 {r['source']} objective '{r['objective']}' is not one of {r['domain']}'s")
+
+    # 12 — objective balance. The blueprint weights are per DOMAIN; the guide
+    # writes items against the 30 objectives beneath them. A bank can sit exactly
+    # on the domain weights and still leave an objective at zero, so each
+    # objective has to hold a real share of its own domain.
+    if OBJECTIVES:
+        for d, lst in OBJECTIVES["objectives"].items():
+            dom_rows = [r for r in rows if r["domain"] == d]
+            if not dom_rows:
+                continue
+            per = Counter(r["objective"] for r in dom_rows)
+            for o in lst:
+                share = 100 * per[o["id"]] / len(dom_rows)
+                if share < OBJ_MIN_SHARE:
+                    fail_or_stage(f"GATE 12 objective {o['id']} holds {per[o['id']]} of {d}'s "
+                         f"{len(dom_rows)} items ({share:.1f}%, min {OBJ_MIN_SHARE}%) — "
+                         f"'{o['text'][:50]}'")
+
+    # 13 — items must ask something. Every sample item in the exam guide ends in
+    # an explicit question ("what is the most appropriate action?"). A scenario
+    # with options attached is a prompt, not an exam item.
+    flat = [r for r in rows if not INTERROGATIVE.search(r["stem"])]
+    if flat:
+        pct = 100 * len(flat) / max(len(rows), 1)
+        fail_or_stage(f"GATE 13 {len(flat)} items ({pct:.1f}%) have no interrogative stem, "
+             f"e.g. {flat[0]['source']} — an exam item asks a question")
+
     return fails, warns, {"ranks": dict(ranks), "tells": tells,
                           "counts": dict(singles), "multi": dict(multis), "tiers": dict(tiers)}
 
@@ -370,12 +435,16 @@ def main():
         if not loose:
             sys.exit(1)
 
+    migrating = "--migrating" in sys.argv
     rows = place_answers(rows)
-    fails, warns, stats = gates(rows, loose)
+    fails, warns, stats = gates(rows, loose, migrating)
 
     print(f"parsed {len(rows)} questions across {len(set(r['domain'] for r in rows))} domains")
     print("  per domain:", {k: stats["counts"].get(k, 0) for k in COUNT})
     print("  multi-response:", stats.get("multi", {}), "total", sum(stats.get("multi", {}).values()))
+    done = sum(1 for r in rows if INTERROGATIVE.search(r["stem"]))
+    print(f"  exam-format rewrite: {done}/{len(rows)} items carry an interrogative stem "
+          f"({100*done/max(len(rows),1):.1f}%)")
     print("  tiers:", dict(sorted(stats["tiers"].items())))
     n = max(len(rows), 1)
     print("  length-rank (1=longest):",
@@ -408,12 +477,15 @@ def main():
             "pass_scaled": 720,
         },
         "domains": DOMAINS,
+        "objectives": ({o["id"]: o["text"] for lst in OBJECTIVES["objectives"].values() for o in lst}
+                       if OBJECTIVES else {}),
         "concepts": {d: dict(sorted(c.items())) for d, c in concepts.items()},
         "questions": [
             {
                 "id": f"{r['domain']}-{i:04d}",
                 "domain": r["domain"],
                 "concept": r["concept"],
+                "objective": r["objective"],
                 "tier": r["tier"],
                 "kind": r["kind"],
                 "stem": r["stem"],

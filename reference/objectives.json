@@ -1,0 +1,210 @@
+{
+  "source": "Claude Certified Associate \u2013 Foundations Exam Guide, v1.0, July 2026, section 6",
+  "note": "The 30 second-level objectives. Exam items are written against these, not against the seven domain headings. Ids are dN.M in guide order.",
+  "objectives": {
+    "d1": [
+      {
+        "id": "1.1",
+        "text": "Create effective prompts for business and technical tasks"
+      },
+      {
+        "id": "1.2",
+        "text": "Apply task decomposition techniques to structure complex requests"
+      },
+      {
+        "id": "1.3",
+        "text": "Iterate prompts to improve output quality"
+      },
+      {
+        "id": "1.4",
+        "text": "Adapt prompting strategies based on task type (analysis, research, drafting, brainstorming)"
+      }
+    ],
+    "d2": [
+      {
+        "id": "2.1",
+        "text": "Evaluate Claude-generated outputs for accuracy and completeness"
+      },
+      {
+        "id": "2.2",
+        "text": "Identify hallucinations, inconsistencies, and biases in responses"
+      },
+      {
+        "id": "2.3",
+        "text": "Apply fact-checking and validation techniques"
+      },
+      {
+        "id": "2.4",
+        "text": "Determine when human review or additional verification is required"
+      },
+      {
+        "id": "2.5",
+        "text": "Edit, adapt, refine, and compare outputs for the intended audience"
+      },
+      {
+        "id": "2.6",
+        "text": "Organize and curate information and select appropriate output formats (artifacts, inline, structured data)"
+      }
+    ],
+    "d3": [
+      {
+        "id": "3.1",
+        "text": "Select appropriate Claude product features (Projects, research mode, chat, artifacts)"
+      },
+      {
+        "id": "3.2",
+        "text": "Differentiate between Claude model types (Haiku, Sonnet, Opus)"
+      },
+      {
+        "id": "3.3",
+        "text": "Align model selection with task requirements (cost, speed, quality)"
+      },
+      {
+        "id": "3.4",
+        "text": "Understand and manage context limitations and memory considerations (when to restart, summarize, or persist)"
+      }
+    ],
+    "d4": [
+      {
+        "id": "4.1",
+        "text": "Apply Claude to analyze requirements and use cases"
+      },
+      {
+        "id": "4.2",
+        "text": "Leverage Claude for research, planning, and process optimization"
+      },
+      {
+        "id": "4.3",
+        "text": "Use Claude to support solution design, development, and iteration"
+      },
+      {
+        "id": "4.4",
+        "text": "Integrate Claude into existing workflows to augment or redesign them"
+      },
+      {
+        "id": "4.5",
+        "text": "Communicate Claude's value and limitations to stakeholders"
+      }
+    ],
+    "d5": [
+      {
+        "id": "5.1",
+        "text": "Configure Claude Projects with instructions and knowledge sources"
+      },
+      {
+        "id": "5.2",
+        "text": "Manage uploaded knowledge and connectors (e.g., Google Drive, Gmail)"
+      },
+      {
+        "id": "5.3",
+        "text": "Create effective system-level instructions"
+      },
+      {
+        "id": "5.4",
+        "text": "Inform, maintain, and update Claude configurations, knowledge sources, and instructions"
+      }
+    ],
+    "d6": [
+      {
+        "id": "6.1",
+        "text": "Identify appropriate and inappropriate use cases"
+      },
+      {
+        "id": "6.2",
+        "text": "Apply data sensitivity, regulatory, and privacy considerations"
+      },
+      {
+        "id": "6.3",
+        "text": "Follow organizational AI policies and governance standards"
+      },
+      {
+        "id": "6.4",
+        "text": "Understand the ethical implications of AI usage"
+      }
+    ],
+    "d7": [
+      {
+        "id": "7.1",
+        "text": "Identify, diagnose, and resolve issues with underperforming prompts or poor outputs"
+      },
+      {
+        "id": "7.2",
+        "text": "Adjust approach based on feedback and results"
+      },
+      {
+        "id": "7.3",
+        "text": "Optimize workflows for efficiency and effectiveness"
+      }
+    ]
+  },
+  "concept_map": {
+    "_note": "Authored concept -> official objective. One objective may own several concepts; every concept must map to exactly one objective in its own domain.",
+    "clear-instructions": "1.1",
+    "context-and-role": "1.1",
+    "constraints-scope": "1.1",
+    "output-format": "1.1",
+    "document-grounding": "1.1",
+    "task-decomposition": "1.2",
+    "iteration-refinement": "1.3",
+    "examples-fewshot": "1.3",
+    "task-type-strategy": "1.4",
+    "completeness-gaps": "2.1",
+    "numerical-accuracy": "2.1",
+    "hallucination-detection": "2.2",
+    "bias-and-framing": "2.2",
+    "verifying-facts": "2.3",
+    "source-attribution": "2.3",
+    "sampling-and-evidence": "2.3",
+    "review-workflow": "2.4",
+    "self-evaluation-limits": "2.4",
+    "quality-criteria": "2.4",
+    "audience-adaptation": "2.5",
+    "output-formats": "2.6",
+    "feature-fit": "3.1",
+    "surface-selection": "3.1",
+    "projects-vs-chat": "3.1",
+    "model-tiers": "3.2",
+    "capability-matching": "3.3",
+    "cost-latency": "3.3",
+    "scaling-decisions": "3.3",
+    "context-window": "3.4",
+    "process-mapping": "4.1",
+    "research-and-planning": "4.2",
+    "measuring-value": "4.2",
+    "solution-design": "4.3",
+    "repeatability": "4.3",
+    "tool-integration": "4.4",
+    "automation-boundaries": "4.4",
+    "handoffs": "4.4",
+    "failure-modes": "4.4",
+    "human-in-the-loop": "4.4",
+    "team-adoption": "4.5",
+    "projects-setup": "5.1",
+    "project-knowledge": "5.1",
+    "connectors": "5.2",
+    "custom-instructions": "5.3",
+    "knowledge-hygiene": "5.4",
+    "sharing-collaboration": "5.4",
+    "organisation": "5.4",
+    "context-limits": "5.4",
+    "acceptable-use": "6.1",
+    "consequential-decisions": "6.1",
+    "data-sensitivity": "6.2",
+    "privacy-regulation": "6.2",
+    "confidentiality": "6.2",
+    "accountability": "6.3",
+    "disclosure-transparency": "6.3",
+    "ip-and-attribution": "6.3",
+    "bias-fairness": "6.4",
+    "diagnosing-poor-output": "7.1",
+    "prompt-repair": "7.1",
+    "context-problems": "7.1",
+    "refusals-and-limits": "7.2",
+    "consistency-issues": "7.2",
+    "efficiency-tuning": "7.3",
+    "feedback-loops": "7.2",
+    "approach-adjustment": "7.2",
+    "workflow-optimisation": "7.3",
+    "cost-optimisation": "7.3"
+  }
+}

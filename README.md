@@ -1,6 +1,6 @@
 # Claude Certified Associate — CCAO-F Practice Deck
 
-**2,140 practice questions** for the **Claude Certified Associate – Foundations**
+**2,250 practice questions** for the **Claude Certified Associate – Foundations**
 exam, built to Anthropic's own published exam guide.
 
 **Open `index.html` in any browser.** That is the whole thing — one self-contained
@@ -58,7 +58,7 @@ core responsibility is deciding whether what came back is accurate, complete and
 ## How to use it
 
 **Two item formats, as the exam has.** Most questions are multiple-choice: four options, one
-right. **140 are multiple-response**: five options, two or three right, and the question tells
+right. **146 are multiple-response**: five options, two or three right, and the question tells
 you how many to pick. Those are marked all-or-nothing — half right is wrong — because that is
 how the real exam scores them.
 
@@ -136,3 +136,18 @@ One thing to check early: while those courses are open, **registering for the ex
 partner email address on a recognised company domain.**
 
 This deck is practice. The guide is the syllabus — read it.
+
+## Coverage against the 30 objectives
+
+The exam guide publishes 30 second-level objectives beneath the seven domains and says items
+are written against them. **Every question here carries the objective it tests**, and
+`reference/objectives.json` holds the mapping.
+
+This matters because a bank can sit exactly on the domain weights and still never test an
+objective. Before this pass, objective **3.4** (context limits and memory) had **zero**
+questions across the whole bank; 2.5, 2.6, 1.4 and 5.2 were each under 2.5% of their domain.
+The 110 questions added in this pass went entirely to those gaps.
+
+**Work in progress:** the bank is being rewritten so every stem ends in an explicit question,
+matching the format of the guide's own sample items. 150 of 2,250 are done. The build reports
+the percentage on every run.

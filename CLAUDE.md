@@ -1,6 +1,6 @@
 # ccao-deck
 
-A **2,140-question practice deck** for the **Claude Certified Associate – Foundations
+A **2,250-question practice deck** for the **Claude Certified Associate – Foundations
 (CCAO-F)** exam — seven blueprint domains, medium-hard, discrete items in both of the
 exam's two formats — plus a
 self-contained drill app with a practice mode and an exam simulation.
@@ -178,3 +178,28 @@ adaptation were all similarly thin.
 **Before adding questions, check coverage against the 30 objectives — not just the seven
 domain headings.** A bank can sit perfectly on the domain weights and still miss an objective
 entirely, which is exactly what happened here.
+
+## The objective field, and gates 11-13
+
+Every question carries `objective` — one of the 30 second-level objectives published in the
+exam guide's section 6, listed in `shared/ccao/objectives.json` (copied to `reference/`).
+
+- **Gate 11** — the objective must be one of that domain's.
+- **Gate 12** — each objective must hold at least 12% of its own domain. This is the content
+  gate the CCA-F projects never had: domain weights alone do not make a bank valid.
+- **Gate 13** — every stem must end in an interrogative. All three sample items in the guide
+  do; a scenario with options attached is a prompt, not an exam item.
+
+Gates 12 and 13 are **hard gates** that the bank does not yet meet. `--migrating` stages them
+as warnings so partial progress can ship, and the build prints how far the rewrite has got.
+**Remove the flag once the rewrite is complete** — it exists to keep the shortfall visible,
+not to lower the bar.
+
+## Two calibrations taken from the guide's sample items
+
+The guide's three samples (section 8) have options running **27-86 characters** with spreads up
+to **3.19x**. The deck's own gates were stricter than the real exam: a 45-character floor and a
+2.5x spread cap. That floor was forcing options to be padded to a uniform length, which is part
+of why they read as statements rather than as answers. Gate 3b now uses 25 characters and gate
+3c allows 3.5x. **Gate 3 — length must not predict the key — is the real protection and is
+unchanged.**
